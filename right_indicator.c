@@ -25,10 +25,13 @@ int main()
 		can2_receive(&m1);
 		if(m1.id==0x331)
 		{
-			if(m1.byteB==1)//turn on indicator 		
-				IOCLR0=RIGHT_INDICATOR; 
-		 	else	
-				IOSET0=RIGHT_INDICATOR; 	 
+			if(m1.rtr==0)
+			{
+				if(m1.byteB==1)//turn on indicator 		
+					IOCLR0=RIGHT_INDICATOR; 
+			 	else	
+					IOSET0=RIGHT_INDICATOR; 	 
+			}
 		}
 	}
 }
