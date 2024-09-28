@@ -1,8 +1,5 @@
 #include<lpc21xx.h>
-#include"lcd_fourbit.h"
-#define shift(ch,pos) (ch<<(8*pos))	 
-#define CLEAR(BIT,POS) BIT&=~(1<<POS)
-#define SET(BIT,POS) BIT|=(1<<POS)	 
+#include"lcd_fourbit.h" 
 
 #define LEFT_IND_SW 14	 
 #define RIGHT_IND_SW 15
@@ -18,7 +15,8 @@
 				m1.byteB=0;\
 		}while(0)
 			
-typedef int u32;
+typedef unsigned int u32;	
+typedef unsigned char u8;
 typedef struct CAN2_MSG {
   u32 id;
   u32 rtr;
@@ -35,10 +33,8 @@ int main()
 {   
   u32 TX1=0,TX2=0,TX3=0,TX4=0,TX5=0;//Transmitting flags to check the ecu is in ON or OFF condition
   CAN m1;
-  lcd_init();
+  lcd_init();//Dashboard
   can2_init();
-  IODIR0|=1<<17; 
-  IOSET0=1<<17;
   m1.rtr=0;//data frame
   m1.dlc=8;//no.of bytes
   m1.byteA=0;					    
@@ -52,34 +48,33 @@ int main()
 			node(m1,0x331,TX2=!TX2,"RIGHT INDICATOR",RIGHT_IND_SW);  
 		if(SWITCH_PRESSED(MOTOR_CW))
 		{ 
-			byteB_flag(TX3,1);
+			byteB_flag(TX3,1);//if TX3 =1 the send the data as 1(for clockwise)
 			node(m1,0x293,m1.byteB,"MOTOR CLOCKWISE",MOTOR_CW);  
 		}
 		if(SWITCH_PRESSED(MOTOR_ACW))
 		{
-			byteB_flag(TX4,2);
+			byteB_flag(TX4,2);//if TX4 =1 the send the data as 2(for Anti-clockwise)
 			node(m1,0x293,m1.byteB,"MOTOR ANTICLOCKWISE",MOTOR_ACW); 
 		}
 		if(SWITCH_PRESSED(MOTOR_IDLE))
 		{
-			byteB_flag(TX5,3);			
+			byteB_flag(TX5,3);//if TX5 =1 the send the data as 3(for Idle position)			
 			node(m1,0x293,m1.byteB,"MOTOR IDLE",MOTOR_IDLE); 
-		}
-		 IOCLR0=1<<17;	   	
+		}  	
 	}
 } 
 
 
 void node(CAN m1, u32 ID, u32 data, u8*str, u8 OPERATION)
-	{	 	   
+{	 	   
    	lcd_command(0X01);
    	lcd_command(0X80);
    	lcd_str(str);
-	 	m1.id=ID;
- 		m1.byteB=data;
-		can2_send(m1);
-		delay_ms(300);
-		while(SWITCH_PRESSED(OPERATION));
+ 	m1.id=ID;
+	m1.byteB=data;
+	can2_send(m1);
+	delay_ms(200);//To avoid switch bouncing
+	while(SWITCH_PRESSED(OPERATION));
 }  
 
 
