@@ -10,8 +10,7 @@ typedef struct CAN2_MSG {
   u32 byteB;
 }CAN;	
 	 
-void can2_init(void);	   
-void can2_send(CAN);   
+void can2_init(void);	 
 void can2_receive(CAN*);
 void delay_ms(unsigned int);
 							   
