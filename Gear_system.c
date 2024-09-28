@@ -22,39 +22,25 @@ void delay_ms(unsigned int);
 int main()
 {
 	char prev=0;
-  CAN m1;
-  can2_init();
-	IODIR0|=A1|A2|LED;//LED P0.17
-	IOSET0=A1|A2|LED; //output direction for motor driver//Motor to idle position
-  while(1)
+	CAN m1;
+	can2_init();
+	IODIR0|=A1|A2|BUZZER;
+	IOSET0=A1|A2; //output direction for motor driver//Motor to idle position
+	while(1)
 	{
 		can2_receive(&m1);
 		if(m1.id==0x293)
 		{
-			if(m1.byteB==1)//Turn ON motor(Clockwise) (GEAR REVERSE)
-				received(m1,1,prev,A1,A2);//Clockwise direction
-			if(m1.byteB==2)//Turn ON motor(Anti-Clockwise) (GEAR FORWARD)
-				received(m1,2,prev,A2,A1);//Anti-Clockwise direction
-			if(m1.byteB==3)		//Turn ON motor(Idle)	
+			if(m1.rtr==0)
 			{
-				prev=0;
-				IOSET0=A1|A2;			
-			}
-		}
-	}
-}
-
-
-void received(CAN m1,u32 data,char*prev,char a1,char a2)
-{
-	if(m1.byteB==data)//Turn ON motor(Clockwise) (GEAR REVERSE)
-				{	
-					if(*prev==0)//If MOTOR in idle state
+				if(m1.byteB==1)//Turn ON motor(Clockwise) (GEAR REVERSE)				
+				{
+					if(prev==0)//If MOTOR in idle state
 					{
-						*prev=1;				
-						IOCLR0=a1;		
-						IOSET0=a2; 
-					}
+						prev=1;				
+						IOCLR0=A1;		
+						IOSET0=A2; 
+			 		}
 					else//If MOTOR already runs in Anti-clockwise warn 
 					{
 						IOCLR0=BUZZER;
@@ -62,8 +48,30 @@ void received(CAN m1,u32 data,char*prev,char a1,char a2)
 						IOSET0=BUZZER;
 					}
 				}
+				if(m1.byteB==2)//Turn ON motor(Anti-Clockwise) (GEAR FORWARD)
+				{
+					if(prev==0)//If MOTOR in idle state, then only the engine starts
+					{
+						prev=1;		
+						IOCLR0=A2;  		
+						IOSET0=A1;	
+					}			   
+					else//If MOTOR already runs in clockwise warn
+					{
+						IOCLR0=BUZZER;
+						delay_ms(500);
+						IOSET0=BUZZER;
+					}
+				}
+				if(m1.byteB==3)		//Turn ON motor(Idle)	
+				{
+					prev=0;
+					IOSET0=A1|A2;			
+				}
+			}
+		}
+	}
 }
-
 
 
 void can2_init()
@@ -98,59 +106,5 @@ void delay_ms(unsigned int ms)
 	T0TCR=0X03;
 	T0TCR=0X00;
 }
-
-
-/*
-int main()
-{
-	char prev=0;
-  CAN m1;
-  can2_init();
-	IODIR0|=A1|A2|LED;//LED P0.17
-	IOSET0=A1|A2|LED; //output direction for motor driver//Motor to idle position
-  while(1)
-	{
-		can2_receive(&m1);
-		if(m1.id==0x293)
-		{
-			if(m1.byteB==1)//Turn ON motor(Clockwise) (GEAR REVERSE)
-			{	
-				if(prev==0)//If MOTOR in idle state
-				{
-					prev=1;				
-					IOCLR0=A1;		
-					IOSET0=A2; 
-		 		}
-				else//If MOTOR already runs in Anti-clockwise warn 
-				{
-					IOCLR0=BUZZER;
-					delay_ms(500);
-					IOSET0=BUZZER;
-				}
-			}
-			if(m1.byteB==2)//Turn ON motor(Anti-Clockwise) (GEAR FORWARD)
-			{		
-				if(prev==0)//If MOTOR in idle state, then only the engine starts
-				{
-					prev=1;		
-					IOCLR0=A2;  		
-					IOSET0=A1;	
-				}			   
-				else//If MOTOR already runs in clockwise warn
-				{
-					IOCLR0=BUZZER;
-					delay_ms(500);
-					IOSET0=BUZZER;
-				}
-			}
-			if(m1.byteB==3)		//Turn ON motor(Idle)	
-			{
-				prev=0;
-				IOSET0=A1|A2;			
-			}
-		}
-	}
-}
-*/
 
 
