@@ -36,26 +36,45 @@ An automotive Body Control Module (BCM) simulation using LPC2129 microcontroller
 ## System Architecture
 
 ```
-                            CAN Bus (125 kbps)
-    ════════════════════════════════════════════════════════════
-         │              │              │              │
-         │              │              │              │
-    ┌────┴────┐    ┌────┴────┐    ┌────┴────┐    ┌────┴────┐
-    │Dashboard│    │  Gear   │    │  Left   │    │  Right  │
-    │   ECU   │    │ System  │    │Indicator│    │Indicator│
-    │         │    │   ECU   │    │   ECU   │    │   ECU   │
-    │ [LCD]   │    │ [Motor] │    │  [LED]  │    │  [LED]  │
-    │[Buttons]│    │[Buzzer] │    │         │    │         │
-    └─────────┘    └─────────┘    └─────────┘    └─────────┘
-         │              │              │              │
-      TX: All       RX: 0x293      RX: 0x221      RX: 0x331
-      Messages      Motor Cmd      Left Ind       Right Ind
+                              CAN Bus Network (125 kbps)
+
+  ┌──────┐                                                           ┌──────┐
+  │ 120Ω │                                                           │ 120Ω │
+  │      │                                                           │      │
+  └──┬───┘                                                           └───┬──┘
+     │         │              │              │              │            │
+CAN-H├─────────┼──────────────┼──────────────┼──────────────┼────────────┤
+     │         │              │              │              │            │
+     │    ┌────┴────┐    ┌────┴────┐    ┌────┴────┐    ┌────┴────┐      │
+     │    │ MCP2551 │    │ MCP2551 │    │ MCP2551 │    │ MCP2551 │      │
+     │    │Xcvr     │    │Xcvr     │    │Xcvr     │    │Xcvr     │      │
+     │    └────┬────┘    └────┬────┘    └────┬────┘    └────┬────┘      │
+     │         │              │              │              │            │
+CAN-L├─────────┼──────────────┼──────────────┼──────────────┼────────────┤
+     │         │              │              │              │            │
+  ┌──┴───┐     │              │              │              │       ┌────┴──┐
+  │ 120Ω │     │              │              │              │       │ 120Ω  │
+  └──────┘     │              │              │              │       └───────┘
+               │              │              │              │
+          ┌────┴────┐    ┌────┴────┐    ┌────┴────┐    ┌────┴────┐
+          │LPC2129  │    │LPC2129  │    │LPC2129  │    │LPC2129  │
+          │Dashboard│    │  Gear   │    │  Left   │    │  Right  │
+          │   ECU   │    │ System  │    │Indicator│    │Indicator│
+          │         │    │   ECU   │    │   ECU   │    │   ECU   │
+          │ [LCD]   │    │ [Motor] │    │  [LED]  │    │  [LED]  │
+          │[Buttons]│    │[Buzzer] │    │         │    │         │
+          └─────────┘    └─────────┘    └─────────┘    └─────────┘
+               │              │              │              │
+            TX: All       RX: 0x293      RX: 0x221      RX: 0x331
+            Messages      Motor Cmd      Left Ind       Right Ind
 ```
 
-### CAN Bus Topology
-- **Linear Bus**: All ECUs connect to a single two-wire differential bus (CAN_H, CAN_L)
-- **Termination**: 120Ω resistors at both ends of the bus
-- **Multi-Master**: Any ECU can transmit; arbitration handles collisions
+### CAN Bus Physical Layer
+- **CAN-H (High)**: Dominant = 3.5V, Recessive = 2.5V
+- **CAN-L (Low)**: Dominant = 1.5V, Recessive = 2.5V
+- **Differential Voltage**: Dominant = 2V, Recessive = 0V
+- **Termination**: 120Ω resistors at both ends of the bus to prevent signal reflections
+- **Transceiver**: MCP2551 converts TTL signals from LPC2129 to differential CAN signals
 
 ## CAN Message IDs
 
@@ -88,3 +107,4 @@ An automotive Body Control Module (BCM) simulation using LPC2129 microcontroller
 - Mode: CAN 2.0B (Extended frames supported)
 - Acceptance Filter: Disabled (receives all messages)
 - Bus Termination: 120Ω at each end
+- Transceiver: MCP2551 (3.3V/5V compatible)
