@@ -1,110 +1,98 @@
-# Body Control Module in Automotives
+# 🚗 Automotive Body Control Module (BCM)
 
-An automotive Body Control Module (BCM) simulation using LPC2129 microcontroller with CAN bus communication for controlling vehicle indicators, motors, and gear systems.
+A multi-ECU embedded system demonstrating **CAN bus communication** for automotive body control applications, simulating real-world vehicle electronic control units.
 
-## Features
+---
 
-- **CAN 2.0B Communication**: 125 kbps CAN bus for inter-ECU messaging
-- **Dashboard ECU**: Central control with LCD display
-- **Indicator Control**: Left and right turn indicators
-- **Motor/Gear Control**: Forward, reverse, and idle gear positions
-- **Multi-ECU Architecture**: Distributed control system simulation
+## 📋 Project Description
 
-## Hardware Requirements
+This project implements a **Body Control Module (BCM)** system commonly found in modern vehicles. The BCM coordinates various electronic functions like indicators, motors, and gear systems through a distributed network of Electronic Control Units (ECUs) communicating via the **CAN (Controller Area Network)** protocol.
 
-- LPC2129 microcontroller boards (multiple for full simulation)
-- CAN transceiver modules (e.g., MCP2551)
-- 16x2 LCD display
-- LEDs for indicators
-- DC motor with L293D driver
-- Buzzer for warnings
-- Push buttons for input
+### What I Built:
+- **Dashboard ECU**: Central control unit with LCD display that sends commands to other ECUs
+- **Gear System ECU**: Controls DC motor for gear shifting (forward/reverse/idle) with safety interlocks
+- **Left & Right Indicator ECUs**: Independent nodes that respond to dashboard commands
 
-## Software Prerequisites
+### Real-World Application:
+This architecture mirrors how actual vehicles work - your car's dashboard, engine, transmission, and lights all communicate over CAN bus, making this project directly relevant to automotive embedded systems roles.
 
-- Keil µVision IDE
-- LPC21xx header files
-- Flash Magic or similar programmer
+---
 
-## Building the Project
+## 🛠️ Technologies Used
 
-1. Open the project in Keil µVision
-2. Configure target settings for LPC2129
-3. Build each ECU file separately
-4. Flash to respective microcontroller boards
+| Category | Technology |
+|----------|------------|
+| **Microcontroller** | LPC2129 (ARM7TDMI-S) |
+| **Protocol** | CAN 2.0B @ 125 kbps |
+| **Transceiver** | MCP2551 |
+| **IDE** | Keil µVision |
+| **Language** | Embedded C |
+| **Motor Driver** | L293D H-Bridge |
+| **Display** | 16x2 LCD (4-bit mode) |
 
-## System Architecture
+---
+
+## 📊 System Architecture
 
 ```
-                              CAN Bus Network (125 kbps)
-
-  ┌──────┐                                                           ┌──────┐
-  │ 120Ω │                                                           │ 120Ω │
-  │      │                                                           │      │
-  └──┬───┘                                                           └───┬──┘
-     │         │              │              │              │            │
-CAN-H├─────────┼──────────────┼──────────────┼──────────────┼────────────┤
-     │         │              │              │              │            │
-     │    ┌────┴────┐    ┌────┴────┐    ┌────┴────┐    ┌────┴────┐      │
-     │    │ MCP2551 │    │ MCP2551 │    │ MCP2551 │    │ MCP2551 │      │
-     │    │Xcvr     │    │Xcvr     │    │Xcvr     │    │Xcvr     │      │
-     │    └────┬────┘    └────┬────┘    └────┬────┘    └────┬────┘      │
-     │         │              │              │              │            │
-CAN-L├─────────┼──────────────┼──────────────┼──────────────┼────────────┤
-     │         │              │              │              │            │
-  ┌──┴───┐     │              │              │              │       ┌────┴──┐
-  │ 120Ω │     │              │              │              │       │ 120Ω  │
-  └──────┘     │              │              │              │       └───────┘
-               │              │              │              │
-          ┌────┴────┐    ┌────┴────┐    ┌────┴────┐    ┌────┴────┐
-          │LPC2129  │    │LPC2129  │    │LPC2129  │    │LPC2129  │
-          │Dashboard│    │  Gear   │    │  Left   │    │  Right  │
-          │   ECU   │    │ System  │    │Indicator│    │Indicator│
-          │         │    │   ECU   │    │   ECU   │    │   ECU   │
-          │ [LCD]   │    │ [Motor] │    │  [LED]  │    │  [LED]  │
-          │[Buttons]│    │[Buzzer] │    │         │    │         │
-          └─────────┘    └─────────┘    └─────────┘    └─────────┘
-               │              │              │              │
-            TX: All       RX: 0x293      RX: 0x221      RX: 0x331
-            Messages      Motor Cmd      Left Ind       Right Ind
+                         CAN Bus (125 kbps)
+    ══════════════════════════════════════════════════════
+         │              │              │              │
+    ┌────┴────┐    ┌────┴────┐    ┌────┴────┐    ┌────┴────┐
+    │Dashboard│    │  Gear   │    │  Left   │    │  Right  │
+    │   ECU   │    │ System  │    │Indicator│    │Indicator│
+    │ [TX]    │    │  [RX]   │    │  [RX]   │    │  [RX]   │
+    └─────────┘    └─────────┘    └─────────┘    └─────────┘
 ```
 
-### CAN Bus Physical Layer
-- **CAN-H (High)**: Dominant = 3.5V, Recessive = 2.5V
-- **CAN-L (Low)**: Dominant = 1.5V, Recessive = 2.5V
-- **Differential Voltage**: Dominant = 2V, Recessive = 0V
-- **Termination**: 120Ω resistors at both ends of the bus to prevent signal reflections
-- **Transceiver**: MCP2551 converts TTL signals from LPC2129 to differential CAN signals
+---
 
-## CAN Message IDs
+## 🔑 Key Skills Demonstrated
 
-| ID | Source | Destination | Description | Data |
-|----|--------|-------------|-------------|------|
-| 0x221 | Dashboard | Left Indicator | Toggle left indicator | 1=ON, 0=OFF |
-| 0x331 | Dashboard | Right Indicator | Toggle right indicator | 1=ON, 0=OFF |
-| 0x293 | Dashboard | Gear System | Motor control command | 1=CW, 2=ACW, 3=Idle |
+### Embedded Systems Development
+- Low-level register programming on ARM7 microcontroller
+- Peripheral configuration (GPIO, CAN, Timers)
+- Interrupt handling and real-time constraints
 
-## File Structure
+### CAN Bus Protocol Implementation
+- CAN frame structure (ID, DLC, Data, CRC)
+- Message arbitration and priority handling
+- Multi-node network configuration
+- Bit timing calculations for 125 kbps
 
-| File | Description |
-|------|-------------|
-| `Dashboard.c` | Main dashboard ECU with LCD and CAN transmit |
-| `Gear_system.c` | Motor control ECU with CAN receive |
-| `left_indicator.c` | Left indicator ECU |
-| `right_indicator.c` | Right indicator ECU |
-| `lcd_fourbit.h` | LCD driver header |
+### Multi-Node Communication
+- Designed message protocol with unique IDs (0x221, 0x331, 0x293)
+- Implemented broadcast communication model
+- Created receiver filtering logic
 
-## How It Works
+### Hardware Integration
+- LCD interfacing in 4-bit mode
+- DC motor control with H-bridge driver
+- LED indicators with proper current limiting
+- CAN transceiver integration
 
-1. **Dashboard ECU** monitors switch inputs and broadcasts CAN messages
-2. **Indicator ECUs** filter messages by ID and toggle LEDs accordingly
-3. **Gear System ECU** receives motor commands and controls L293D driver
-4. Safety interlocks prevent conflicting operations (buzzer warning)
+### Safety & Reliability
+- Implemented safety interlocks (buzzer warnings)
+- State machine for gear transitions
+- Debouncing for switch inputs
 
-## CAN Configuration
+---
 
-- Bit Rate: 125 kbps
-- Mode: CAN 2.0B (Extended frames supported)
-- Acceptance Filter: Disabled (receives all messages)
-- Bus Termination: 120Ω at each end
-- Transceiver: MCP2551 (3.3V/5V compatible)
+## 📁 Project Structure
+
+| File | Purpose |
+|------|---------|
+| `Dashboard.c` | Main ECU - LCD display, button inputs, CAN transmit |
+| `Gear_system.c` | Motor control with safety logic |
+| `left_indicator.c` | Left turn signal ECU |
+| `right_indicator.c` | Right turn signal ECU |
+| `lcd_fourbit.h` | LCD driver library |
+
+---
+
+## 🎯 What I Learned
+
+- How automotive networks handle real-time communication
+- Importance of message prioritization in CAN
+- Designing robust embedded systems with error handling
+- Hardware-software co-design for reliable operation
