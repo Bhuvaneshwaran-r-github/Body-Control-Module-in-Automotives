@@ -36,26 +36,34 @@ An automotive Body Control Module (BCM) simulation using LPC2129 microcontroller
 ## System Architecture
 
 ```
-┌─────────────┐     CAN Bus     ┌─────────────────┐
-│  Dashboard  │◄───────────────►│  Gear System    │
-│    ECU      │                 │      ECU        │
-└─────────────┘                 └─────────────────┘
-       │                               │
-       │         CAN Bus               │
-       ▼                               ▼
-┌─────────────┐                 ┌─────────────────┐
-│    Left     │◄───────────────►│     Right       │
-│  Indicator  │                 │   Indicator     │
-└─────────────┘                 └─────────────────┘
+                            CAN Bus (125 kbps)
+    ════════════════════════════════════════════════════════════
+         │              │              │              │
+         │              │              │              │
+    ┌────┴────┐    ┌────┴────┐    ┌────┴────┐    ┌────┴────┐
+    │Dashboard│    │  Gear   │    │  Left   │    │  Right  │
+    │   ECU   │    │ System  │    │Indicator│    │Indicator│
+    │         │    │   ECU   │    │   ECU   │    │   ECU   │
+    │ [LCD]   │    │ [Motor] │    │  [LED]  │    │  [LED]  │
+    │[Buttons]│    │[Buzzer] │    │         │    │         │
+    └─────────┘    └─────────┘    └─────────┘    └─────────┘
+         │              │              │              │
+      TX: All       RX: 0x293      RX: 0x221      RX: 0x331
+      Messages      Motor Cmd      Left Ind       Right Ind
 ```
+
+### CAN Bus Topology
+- **Linear Bus**: All ECUs connect to a single two-wire differential bus (CAN_H, CAN_L)
+- **Termination**: 120Ω resistors at both ends of the bus
+- **Multi-Master**: Any ECU can transmit; arbitration handles collisions
 
 ## CAN Message IDs
 
-| ID | Description | Data |
-|----|-------------|------|
-| 0x221 | Left Indicator | ON/OFF state |
-| 0x331 | Right Indicator | ON/OFF state |
-| 0x293 | Motor Control | 1=CW, 2=ACW, 3=Idle |
+| ID | Source | Destination | Description | Data |
+|----|--------|-------------|-------------|------|
+| 0x221 | Dashboard | Left Indicator | Toggle left indicator | 1=ON, 0=OFF |
+| 0x331 | Dashboard | Right Indicator | Toggle right indicator | 1=ON, 0=OFF |
+| 0x293 | Dashboard | Gear System | Motor control command | 1=CW, 2=ACW, 3=Idle |
 
 ## File Structure
 
@@ -69,8 +77,8 @@ An automotive Body Control Module (BCM) simulation using LPC2129 microcontroller
 
 ## How It Works
 
-1. **Dashboard ECU** monitors switch inputs and sends CAN messages
-2. **Indicator ECUs** receive messages and toggle LEDs
+1. **Dashboard ECU** monitors switch inputs and broadcasts CAN messages
+2. **Indicator ECUs** filter messages by ID and toggle LEDs accordingly
 3. **Gear System ECU** receives motor commands and controls L293D driver
 4. Safety interlocks prevent conflicting operations (buzzer warning)
 
@@ -79,3 +87,4 @@ An automotive Body Control Module (BCM) simulation using LPC2129 microcontroller
 - Bit Rate: 125 kbps
 - Mode: CAN 2.0B (Extended frames supported)
 - Acceptance Filter: Disabled (receives all messages)
+- Bus Termination: 120Ω at each end
